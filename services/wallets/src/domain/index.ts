@@ -1,0 +1,5 @@
+export { Money } from './value-objects/money.vo'
+export { Wallet } from './wallet.entity'
+export { WalletCreated } from './events/wallet-created.event'
+export { BalanceCredited } from './events/balance-credited.event'
+export { BalanceDebited } from './events/balance-debited.event'
