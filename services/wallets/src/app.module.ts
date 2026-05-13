@@ -1,7 +1,25 @@
-import { Module } from "@nestjs/common";
-import { WalletsController } from "./presentation/controllers/wallets.controller";
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { WalletsController } from './presentation/controllers/wallets.controller';
+import { PostgresConfigService } from './infrastructure/database/postgres-config.service';
+import { WalletOrmEntity } from './infrastructure/persistence/wallet.orm-entity';
+import { WalletTypeOrmRepository } from './infrastructure/persistence/wallet.typeorm-repository';
+import { WALLET_REPOSITORY } from './domain/repositories/wallet.repository';
 
 @Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({ useClass: PostgresConfigService }),
+    TypeOrmModule.forFeature([WalletOrmEntity]),
+  ],
   controllers: [WalletsController],
+  providers: [
+    WalletTypeOrmRepository,
+    {
+      provide: WALLET_REPOSITORY,
+      useExisting: WalletTypeOrmRepository,
+    },
+  ],
 })
 export class AppModule {}
