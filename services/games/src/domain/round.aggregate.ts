@@ -1,11 +1,16 @@
 import { randomUUID } from 'crypto';
 import { RoundStatus } from './enums/round-status.enum';
+import { BetStatus } from './enums/bet-status.enum';
 import { Multiplier } from './value-objects/multiplier.vo';
+import { Money } from './value-objects/money.vo';
+import { Bet } from './bet.entity';
 import { RoundOpened } from './events/round-opened.event';
 import { RoundStarted } from './events/round-started.event';
 import { RoundCrashed } from './events/round-crashed.event';
+import { BetPlaced } from './events/bet-placed.event';
+import { CashOutProcessed } from './events/cash-out-processed.event';
 
-type DomainEvent = RoundOpened | RoundStarted | RoundCrashed;
+type DomainEvent = RoundOpened | RoundStarted | RoundCrashed | BetPlaced | CashOutProcessed;
 
 /**
  * Round aggregate root.
@@ -41,6 +46,8 @@ export class Round {
     private _crashedAt: Date | null,
 
     readonly createdAt: Date,
+
+    private _bets: Bet[],
   ) {}
 
   get status(): RoundStatus {
@@ -65,6 +72,11 @@ export class Round {
 
   get crashedAt(): Date | null {
     return this._crashedAt;
+  }
+
+  /** Returns a shallow copy — mutating the result does not affect internal state. */
+  get bets(): Bet[] {
+    return [...this._bets];
   }
 
   /**
@@ -100,6 +112,7 @@ export class Round {
       null,
       null,
       new Date(),
+      [],
     );
     round._domainEvents.push(new RoundOpened(round.id, serverSeedHash));
     return round;
@@ -118,6 +131,7 @@ export class Round {
     startedAt: Date | null,
     crashedAt: Date | null,
     createdAt: Date,
+    bets: Bet[] = [],
   ): Round {
     return new Round(
       id,
@@ -128,6 +142,7 @@ export class Round {
       startedAt,
       crashedAt,
       createdAt,
+      bets,
     );
   }
 
@@ -145,7 +160,53 @@ export class Round {
   }
 
   /**
-   * Transitions RUNNING → CRASHED, reveals the server seed. Emits {@link RoundCrashed}.
+   * Accepts a bet from a player. Emits {@link BetPlaced}.
+   * @throws {Error} If round is not in BETTING state, or player already has a bet.
+   */
+  placeBet(playerId: string, amount: Money): Bet {
+    this.assertBettingOpen();
+
+    const alreadyBet = this._bets.some((b) => b.playerId === playerId);
+    if (alreadyBet) {
+      throw new Error('Player already has a bet in this round');
+    }
+
+    const bet = Bet.create(this.id, playerId, amount);
+    this._bets.push(bet);
+    this._domainEvents.push(new BetPlaced(this.id, bet.id, playerId, amount.amount));
+    return bet;
+  }
+
+  /**
+   * Processes a cashout for a player. Emits {@link CashOutProcessed}.
+   * @throws {Error} If round is not RUNNING, or player has no active bet.
+   */
+  processCashOut(playerId: string, currentMultiplier: Multiplier): Bet {
+    this.assertRunning();
+
+    const bet = this._bets.find(
+      (b) => b.playerId === playerId && b.status === BetStatus.PENDING,
+    );
+    if (!bet) {
+      throw new Error('No active bet found for player in this round');
+    }
+
+    bet.cashOut(currentMultiplier);
+    this._domainEvents.push(
+      new CashOutProcessed(
+        this.id,
+        bet.id,
+        playerId,
+        bet.payout!.amount,
+        currentMultiplier.centesimals,
+      ),
+    );
+    return bet;
+  }
+
+  /**
+   * Transitions RUNNING → CRASHED, marks all pending bets as lost, reveals the server seed.
+   * Emits {@link RoundCrashed}.
    * @param serverSeed - The original seed used to generate the crash point.
    * @throws {Error} If round is not in RUNNING state.
    */
@@ -153,6 +214,13 @@ export class Round {
     if (this._status !== RoundStatus.RUNNING) {
       throw new Error(`Cannot crash a round in ${this._status} state`);
     }
+
+    for (const bet of this._bets) {
+      if (bet.status === BetStatus.PENDING) {
+        bet.lose();
+      }
+    }
+
     this._status = RoundStatus.CRASHED;
     this._serverSeed = serverSeed;
     this._crashedAt = new Date();

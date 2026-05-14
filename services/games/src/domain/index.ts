@@ -1,6 +1,11 @@
 export { RoundStatus } from './enums/round-status.enum';
+export { BetStatus } from './enums/bet-status.enum';
 export { Multiplier } from './value-objects/multiplier.vo';
+export { Money } from './value-objects/money.vo';
 export { RoundOpened } from './events/round-opened.event';
 export { RoundStarted } from './events/round-started.event';
 export { RoundCrashed } from './events/round-crashed.event';
+export { BetPlaced } from './events/bet-placed.event';
+export { CashOutProcessed } from './events/cash-out-processed.event';
+export { Bet } from './bet.entity';
 export { Round } from './round.aggregate';
