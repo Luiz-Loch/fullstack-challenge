@@ -5,7 +5,9 @@ import { WalletsController } from './presentation/controllers/wallets.controller
 import { PostgresConfigService } from './infrastructure/database/postgres-config.service';
 import { WalletOrmEntity } from './infrastructure/persistence/wallet.orm-entity';
 import { WalletTypeOrmRepository } from './infrastructure/persistence/wallet.typeorm-repository';
-import { WALLET_REPOSITORY } from './domain/repositories/wallet.repository';
+import { WALLET_REPOSITORY } from './domain/ports/wallet.repository';
+import { CreateWalletUseCase } from './application/use-cases/create-wallet.use-case';
+import { GetMyWalletUseCase } from './application/use-cases/get-my-wallet.use-case';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { WALLET_REPOSITORY } from './domain/repositories/wallet.repository';
       provide: WALLET_REPOSITORY,
       useExisting: WalletTypeOrmRepository,
     },
+    CreateWalletUseCase,
+    GetMyWalletUseCase,
   ],
 })
 export class AppModule {}
