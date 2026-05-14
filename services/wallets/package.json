@@ -25,9 +25,12 @@
     "typeorm": "^0.3.29"
   },
   "devDependencies": {
+    "@nestjs/testing": "^11.1.21",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/supertest": "^7.2.0",
     "bun-types": "^1.3.14",
+    "supertest": "^7.2.2",
     "typescript": "^5.8.3"
   }
 }
