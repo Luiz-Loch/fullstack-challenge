@@ -8,7 +8,9 @@ import { WalletTypeOrmRepository } from './infrastructure/persistence/wallet.typ
 import { WALLET_REPOSITORY } from './domain/ports/wallet.repository';
 import { CreateWalletUseCase } from './application/use-cases/create-wallet.use-case';
 import { GetMyWalletUseCase } from './application/use-cases/get-my-wallet.use-case';
+import { KeycloakJwtGuard } from './infrastructure/auth/keycloak-jwt.guard';
 
+/** Root module for the Wallet Service. Wires together persistence, use cases and the HTTP layer. */
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -24,6 +26,7 @@ import { GetMyWalletUseCase } from './application/use-cases/get-my-wallet.use-ca
     },
     CreateWalletUseCase,
     GetMyWalletUseCase,
+    KeycloakJwtGuard,
   ],
 })
 export class AppModule {}

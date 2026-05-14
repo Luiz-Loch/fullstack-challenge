@@ -2,10 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 
+/**
+ * Provides TypeORM connection options from environment variables.
+ * Migrations run automatically on startup (`migrationsRun: true`).
+ */
 @Injectable()
-export class PostgresConfigService
-    implements TypeOrmOptionsFactory {
-      
+export class PostgresConfigService implements TypeOrmOptionsFactory {
+
   constructor(private readonly configService: ConfigService) {}
 
   createTypeOrmOptions(): TypeOrmModuleOptions {

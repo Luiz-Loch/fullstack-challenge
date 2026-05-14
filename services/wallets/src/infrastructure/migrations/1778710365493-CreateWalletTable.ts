@@ -1,8 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateWalletTable1778630400000
-    implements MigrationInterface {
+/** Creates the `wallets` table with a BIGINT balance column to avoid floating-point precision issues. */
+export class CreateWalletTable1778630400000 implements MigrationInterface {
 
+  /** Creates the `wallets` table if it does not already exist. */
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS "wallets" (
@@ -17,8 +18,8 @@ export class CreateWalletTable1778630400000
     `);
   }
 
+  /** Drops the `wallets` table. */
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS "wallets"`);
   }
-
 }
