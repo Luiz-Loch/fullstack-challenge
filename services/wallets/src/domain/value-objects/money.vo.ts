@@ -3,7 +3,7 @@
  * Immutable — every operation returns a new instance instead of mutating.
  */
 export class Money {
-  /** Raw amount in cents. Use {@link toDecimal} to convert for display. */
+  /** Raw amount in cents. */
   private constructor(readonly amount: bigint) {}
 
   /**
@@ -16,15 +16,6 @@ export class Money {
         throw new Error('Money cannot be negative');
     }
     return new Money(amount);
-  }
-
-  /**
-   * Creates a Money from a decimal value, rounding to the nearest cent.
-   * Use at system boundaries (e.g. parsing user input or API payloads).
-   * @param value - Decimal value (e.g. 19.99).
-   */
-  static fromDecimal(value: number): Money {
-    return Money.of(BigInt(Math.round(value * 100)));
   }
 
   /**
@@ -51,15 +42,6 @@ export class Money {
   /** Compares by value, not by reference. */
   equals(other: Money): boolean {
     return this.amount === other.amount;
-  }
-
-  /**
-   * Converts cents to a decimal value for display or serialization.
-   * Use at system boundaries (e.g. building API responses).
-   * @returns Decimal value (e.g. 1999n → 19.99).
-   */
-  toDecimal(): number {
-    return Number(this.amount) / 100;
   }
 
 }

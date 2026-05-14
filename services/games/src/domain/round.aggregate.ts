@@ -1,0 +1,186 @@
+import { randomUUID } from 'crypto';
+import { RoundStatus } from './enums/round-status.enum';
+import { Multiplier } from './value-objects/multiplier.vo';
+import { RoundOpened } from './events/round-opened.event';
+import { RoundStarted } from './events/round-started.event';
+import { RoundCrashed } from './events/round-crashed.event';
+
+type DomainEvent = RoundOpened | RoundStarted | RoundCrashed;
+
+/**
+ * Round aggregate root.
+ * Owns the lifecycle of a single game round via a strict state machine:
+ *   BETTING → RUNNING → CRASHED
+ *
+ * The crash point is pre-determined at creation (provably fair) and hidden
+ * from presentation until the round crashes. The server seed hash is published
+ * upfront so players can verify fairness after the fact.
+ */
+export class Round {
+  private readonly _domainEvents: DomainEvent[] = [];
+
+  private constructor(
+    readonly id: string,
+
+    private _status: RoundStatus,
+
+    /**
+     * Pre-determined crash point. Presentation layer must NOT expose this
+     * until status === CRASHED — use serverSeedHash for pre-round transparency.
+     */
+    private readonly _crashPoint: Multiplier,
+
+    /** SHA256(serverSeed), published at round creation for provably fair verification. */
+    private readonly _serverSeedHash: string,
+
+    /** Revealed only when the round crashes. Null while BETTING or RUNNING. */
+    private _serverSeed: string | null,
+
+    private _startedAt: Date | null,
+
+    private _crashedAt: Date | null,
+
+    readonly createdAt: Date,
+  ) {}
+
+  get status(): RoundStatus {
+    return this._status;
+  }
+
+  get crashPoint(): Multiplier {
+    return this._crashPoint;
+  }
+
+  get serverSeedHash(): string {
+    return this._serverSeedHash;
+  }
+
+  get serverSeed(): string | null {
+    return this._serverSeed;
+  }
+
+  get startedAt(): Date | null {
+    return this._startedAt;
+  }
+
+  get crashedAt(): Date | null {
+    return this._crashedAt;
+  }
+
+  /**
+   * Pending domain events since the last {@link clearEvents} call.
+   * Returns a shallow copy — mutating the result does not affect internal state.
+   */
+  get domainEvents(): DomainEvent[] {
+    return [...this._domainEvents];
+  }
+
+  /**
+   * Removes all pending events.
+   * Call after persisting the aggregate and publishing the events.
+   */
+  clearEvents(): void {
+    this._domainEvents.length = 0;
+  }
+
+  /**
+   * Creates a new round in BETTING state.
+   * The crash point must be pre-computed by the provably fair algorithm before calling this.
+   *
+   * @param crashPoint - Pre-determined crash point (hidden until crash).
+   * @param serverSeedHash - SHA256 of the server seed, published immediately for player verification.
+   */
+  static create(crashPoint: Multiplier, serverSeedHash: string): Round {
+    const round = new Round(
+      randomUUID(),
+      RoundStatus.BETTING,
+      crashPoint,
+      serverSeedHash,
+      null,
+      null,
+      null,
+      new Date(),
+    );
+    round._domainEvents.push(new RoundOpened(round.id, serverSeedHash));
+    return round;
+  }
+
+  /**
+   * Rebuilds a Round from a persisted record without emitting events.
+   * Use in repository find mappings.
+   */
+  static reconstitute(
+    id: string,
+    status: RoundStatus,
+    crashPointCentesimals: bigint,
+    serverSeedHash: string,
+    serverSeed: string | null,
+    startedAt: Date | null,
+    crashedAt: Date | null,
+    createdAt: Date,
+  ): Round {
+    return new Round(
+      id,
+      status,
+      Multiplier.of(crashPointCentesimals),
+      serverSeedHash,
+      serverSeed,
+      startedAt,
+      crashedAt,
+      createdAt,
+    );
+  }
+
+  /**
+   * Transitions BETTING → RUNNING. Emits {@link RoundStarted}.
+   * @throws {Error} If round is not in BETTING state.
+   */
+  start(): void {
+    if (this._status !== RoundStatus.BETTING) {
+      throw new Error(`Cannot start a round in ${this._status} state`);
+    }
+    this._status = RoundStatus.RUNNING;
+    this._startedAt = new Date();
+    this._domainEvents.push(new RoundStarted(this.id, this._startedAt));
+  }
+
+  /**
+   * Transitions RUNNING → CRASHED, reveals the server seed. Emits {@link RoundCrashed}.
+   * @param serverSeed - The original seed used to generate the crash point.
+   * @throws {Error} If round is not in RUNNING state.
+   */
+  crash(serverSeed: string): void {
+    if (this._status !== RoundStatus.RUNNING) {
+      throw new Error(`Cannot crash a round in ${this._status} state`);
+    }
+    this._status = RoundStatus.CRASHED;
+    this._serverSeed = serverSeed;
+    this._crashedAt = new Date();
+    this._domainEvents.push(
+      new RoundCrashed(this.id, this._crashPoint.centesimals, serverSeed, this._crashedAt),
+    );
+  }
+
+  /**
+   * Asserts the round is in BETTING state.
+   * Used by Bet operations to enforce the invariant "no bets during RUNNING".
+   * @throws {Error} If round is not in BETTING state.
+   */
+  assertBettingOpen(): void {
+    if (this._status !== RoundStatus.BETTING) {
+      throw new Error('Bets are only accepted during the BETTING phase');
+    }
+  }
+
+  /**
+   * Asserts the round is in RUNNING state.
+   * Used by cashout operations to enforce the invariant "no cashout during BETTING".
+   * @throws {Error} If round is not in RUNNING state.
+   */
+  assertRunning(): void {
+    if (this._status !== RoundStatus.RUNNING) {
+      throw new Error('Cash outs are only accepted during the RUNNING phase');
+    }
+  }
+
+}
