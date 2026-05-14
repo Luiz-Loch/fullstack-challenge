@@ -1,4 +1,4 @@
-import { Wallet } from '../wallet.entity';
+import { Wallet } from '../wallet.aggregate';
 
 /** DI injection token for {@link IWalletRepository}. */
 export const WALLET_REPOSITORY = Symbol('IWalletRepository');

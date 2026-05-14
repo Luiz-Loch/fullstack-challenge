@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Wallet } from '@/domain/wallet.entity';
+import { Wallet } from '@/domain/wallet.aggregate';
 import { WALLET_REPOSITORY } from '@/domain/ports/wallet.repository';
 import type { IWalletRepository } from '@/domain/ports/wallet.repository';
 

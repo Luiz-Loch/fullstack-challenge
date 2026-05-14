@@ -1,7 +1,7 @@
 import { describe, it, expect, mock } from 'bun:test'
 import { NotFoundException } from '@nestjs/common'
 import { GetMyWalletUseCase } from '../../../src/application/use-cases/get-my-wallet.use-case'
-import { Wallet } from '../../../src/domain/wallet.entity'
+import { Wallet } from '../../../src/domain/wallet.aggregate'
 import type { IWalletRepository } from '../../../src/domain/ports/wallet.repository'
 
 const makeSut = (wallet: Wallet | null = null) => {

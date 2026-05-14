@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Wallet } from '@/domain/wallet.entity';
+import { Wallet } from '@/domain/wallet.aggregate';
 import { IWalletRepository } from '@/domain/ports/wallet.repository';
 import { WalletOrmEntity } from './wallet.orm-entity';
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { Wallet } from '../../../src/domain/wallet.entity'
+import { Wallet } from '../../../src/domain/wallet.aggregate'
 import { Money } from '../../../src/domain/value-objects/money.vo'
 import { WalletCreated } from '../../../src/domain/events/wallet-created.event'
 import { BalanceCredited } from '../../../src/domain/events/balance-credited.event'
