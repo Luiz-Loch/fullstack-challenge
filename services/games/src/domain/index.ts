@@ -9,3 +9,4 @@ export { BetPlaced } from './events/bet-placed.event';
 export { CashOutProcessed } from './events/cash-out-processed.event';
 export { Bet } from './bet.entity';
 export { Round } from './round.aggregate';
+export { ProvablyFair } from './provably-fair';
