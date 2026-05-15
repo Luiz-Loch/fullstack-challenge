@@ -5,7 +5,8 @@ import jwksRsa from 'jwks-rsa';
 import type { Request } from 'express';
 
 /** Express request enriched with the authenticated player's id after JWT validation. */
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest
+    extends Request {
   playerId: string;
 }
 
@@ -16,7 +17,9 @@ export interface AuthenticatedRequest extends Request {
  * can retrieve it via the {@link PlayerId} decorator.
  */
 @Injectable()
-export class KeycloakJwtGuard implements CanActivate {
+export class KeycloakJwtGuard
+    implements CanActivate {
+
   private readonly logger = new Logger(KeycloakJwtGuard.name);
   private readonly jwksClient: jwksRsa.JwksClient;
 

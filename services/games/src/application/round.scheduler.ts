@@ -32,7 +32,9 @@ export interface RoundSnapshot {
  * is visible to players during BETTING and RUNNING phases.
  */
 @Injectable()
-export class RoundScheduler implements OnModuleInit, OnModuleDestroy {
+export class RoundScheduler
+  implements OnModuleInit, OnModuleDestroy {
+
   private readonly logger = new Logger(RoundScheduler.name);
 
   private currentRound: Round | null = null;
@@ -45,7 +47,7 @@ export class RoundScheduler implements OnModuleInit, OnModuleDestroy {
     @Inject(ROUND_REPOSITORY)
     private readonly roundRepository: IRoundRepository,
     private readonly provablyFair: ProvablyFair,
-  ) {}
+  ) { }
 
   async onModuleInit(): Promise<void> {
     await this.openNewRound();
@@ -57,7 +59,9 @@ export class RoundScheduler implements OnModuleInit, OnModuleDestroy {
 
   /** Current round state snapshot for REST / WebSocket layers. */
   getSnapshot(): RoundSnapshot | null {
-    if (!this.currentRound) return null;
+    if (!this.currentRound) {
+      return null;
+    }
     return {
       roundId: this.currentRound.id,
       status: this.currentRound.status,

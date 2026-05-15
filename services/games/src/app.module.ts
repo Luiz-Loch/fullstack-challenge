@@ -16,6 +16,10 @@ import { ProvablyFair } from './domain/provably-fair';
 import { BetMapper } from './infrastructure/persistence/mapper/bet.mapper';
 import { RoundMapper } from './infrastructure/persistence/mapper/round.mapper';
 import { KeycloakJwtGuard } from './infrastructure/auth/keycloak-jwt.guard';
+import { RoundsController } from './presentation/controllers/rounds.controller';
+import { GetCurrentRoundUseCase } from './application/use-cases/get-current-round.use-case';
+import { GetRoundHistoryUseCase } from './application/use-cases/get-round-history.use-case';
+import { VerifyRoundUseCase } from './application/use-cases/verify-round.use-case';
 
 @Module({
   imports: [
@@ -23,19 +27,22 @@ import { KeycloakJwtGuard } from './infrastructure/auth/keycloak-jwt.guard';
     TypeOrmModule.forRootAsync({ useClass: PostgresConfigService }),
     TypeOrmModule.forFeature([RoundOrmEntity, BetOrmEntity]),
   ],
-  controllers: [GamesController],
+  controllers: [GamesController, RoundsController],
   providers: [
     RoundTypeOrmRepository,
     { provide: ROUND_REPOSITORY, useExisting: RoundTypeOrmRepository },
     BetTypeOrmRepository,
     { provide: BET_REPOSITORY, useExisting: BetTypeOrmRepository },
     BetMapper,
-    RoundMapper,
-    ProvablyFair,
-    PlaceBetUseCase,
     CashOutUseCase,
-    RoundScheduler,
+    GetCurrentRoundUseCase,
+    GetRoundHistoryUseCase,
     KeycloakJwtGuard,
+    PlaceBetUseCase,
+    ProvablyFair,
+    RoundMapper,
+    RoundScheduler,
+    VerifyRoundUseCase,
   ],
 })
 export class AppModule { }

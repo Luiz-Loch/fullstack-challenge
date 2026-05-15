@@ -3,7 +3,7 @@ import { HealthCheckResponseDto } from "../dtos/health-check-response.dto";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 @ApiTags('games')
-@Controller('games')
+@Controller()
 export class GamesController {
 
   constructor() { }
