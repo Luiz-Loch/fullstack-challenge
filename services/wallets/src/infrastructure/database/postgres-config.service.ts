@@ -7,9 +7,10 @@ import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
  * Migrations run automatically on startup (`migrationsRun: true`).
  */
 @Injectable()
-export class PostgresConfigService implements TypeOrmOptionsFactory {
+export class PostgresConfigService
+    implements TypeOrmOptionsFactory {
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
     return {

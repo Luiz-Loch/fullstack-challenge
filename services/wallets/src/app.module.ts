@@ -21,8 +21,7 @@ import { KeycloakJwtGuard } from './infrastructure/auth/keycloak-jwt.guard';
   providers: [
     WalletTypeOrmRepository,
     {
-      provide: WALLET_REPOSITORY,
-      useExisting: WalletTypeOrmRepository,
+      provide: WALLET_REPOSITORY, useExisting: WalletTypeOrmRepository,
     },
     CreateWalletUseCase,
     GetMyWalletUseCase,

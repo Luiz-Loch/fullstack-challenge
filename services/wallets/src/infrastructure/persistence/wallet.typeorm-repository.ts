@@ -9,16 +9,17 @@ import { WalletOrmEntity } from './wallet.orm-entity';
 @Injectable()
 export class WalletTypeOrmRepository
     implements IWalletRepository {
+
   private readonly logger = new Logger(WalletTypeOrmRepository.name);
 
   constructor(
     @InjectRepository(WalletOrmEntity)
-    private readonly repo: Repository<WalletOrmEntity>,
+    private readonly repository: Repository<WalletOrmEntity>,
   ) {}
 
   /** Saves the wallet row, including the latest balance. */
   async save(wallet: Wallet): Promise<void> {
-    await this.repo.save({
+    await this.repository.save({
       id: wallet.id,
       playerId: wallet.playerId,
       balanceCents: wallet.balance.amount.toString(),
@@ -29,7 +30,7 @@ export class WalletTypeOrmRepository
   }
 
   async findByPlayerId(playerId: string): Promise<Wallet | null> {
-    return this.repo.findOneBy({ playerId })
+    return this.repository.findOneBy({ playerId })
       .then(row => row ? this.toDomain(row) : null)
       .catch((err: Error) => {
         this.logger.error(`Failed to query wallet by playerId ${playerId}: ${err.message}`, err.stack);
@@ -38,7 +39,7 @@ export class WalletTypeOrmRepository
   }
 
   async findById(id: string): Promise<Wallet | null> {
-    return this.repo.findOneBy({ id })
+    return this.repository.findOneBy({ id })
       .then(row => row ? this.toDomain(row) : null)
       .catch((err: Error) => {
         this.logger.error(`Failed to query wallet by id ${id}: ${err.message}`, err.stack);
