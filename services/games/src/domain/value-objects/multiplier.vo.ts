@@ -24,4 +24,8 @@ export class Multiplier {
     return this.centesimals === other.centesimals;
   }
 
+  greaterThanOrEqual(other: Multiplier): boolean {
+    return this.centesimals >= other.centesimals;
+  }
+
 }

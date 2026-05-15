@@ -11,6 +11,8 @@ import { ROUND_REPOSITORY } from './domain/ports/round.repository';
 import { BET_REPOSITORY } from './domain/ports/bet.repository';
 import { PlaceBetUseCase } from './application/use-cases/place-bet.use-case';
 import { CashOutUseCase } from './application/use-cases/cash-out.use-case';
+import { RoundScheduler } from './application/round.scheduler';
+import { ProvablyFair } from './domain/provably-fair';
 import { BetMapper } from './infrastructure/persistence/mapper/bet.mapper';
 import { RoundMapper } from './infrastructure/persistence/mapper/round.mapper';
 
@@ -28,8 +30,10 @@ import { RoundMapper } from './infrastructure/persistence/mapper/round.mapper';
     { provide: BET_REPOSITORY, useExisting: BetTypeOrmRepository },
     BetMapper,
     RoundMapper,
+    ProvablyFair,
     PlaceBetUseCase,
     CashOutUseCase,
+    RoundScheduler,
   ],
 })
 export class AppModule {}
