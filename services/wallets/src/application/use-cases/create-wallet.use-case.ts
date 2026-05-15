@@ -1,5 +1,6 @@
 import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
 import { Wallet } from '@/domain/wallet.aggregate';
+
 import { WALLET_REPOSITORY } from '@/domain/ports/wallet.repository';
 import type { IWalletRepository } from '@/domain/ports/wallet.repository';
 
