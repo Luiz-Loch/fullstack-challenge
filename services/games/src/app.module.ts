@@ -15,6 +15,7 @@ import { RoundScheduler } from './application/round.scheduler';
 import { ProvablyFair } from './domain/provably-fair';
 import { BetMapper } from './infrastructure/persistence/mapper/bet.mapper';
 import { RoundMapper } from './infrastructure/persistence/mapper/round.mapper';
+import { KeycloakJwtGuard } from './infrastructure/auth/keycloak-jwt.guard';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { RoundMapper } from './infrastructure/persistence/mapper/round.mapper';
     PlaceBetUseCase,
     CashOutUseCase,
     RoundScheduler,
+    KeycloakJwtGuard,
   ],
 })
-export class AppModule {}
+export class AppModule { }

@@ -18,7 +18,7 @@ export class RoundMapper {
       entity.startedAt,
       entity.crashedAt,
       entity.createdAt,
-      entity.bets.map(b => this.betMapper.toDomain(b, entity.id)),
+      (entity.bets ?? []).map(b => this.betMapper.toDomain(b, entity.id)),
     );
   }
 
