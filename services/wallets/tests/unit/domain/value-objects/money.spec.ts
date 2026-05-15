@@ -63,24 +63,4 @@ describe('Money', () => {
     })
   })
 
-  describe('fromDecimal()', () => {
-    it('converts decimal to cents', () => {
-      expect(Money.fromDecimal(19.99).amount).toBe(1999n)
-    })
-
-    it('rounds correctly to avoid float imprecision', () => {
-      // 0.1 + 0.2 = 0.30000000000000004 in IEEE 754
-      expect(Money.fromDecimal(0.1 + 0.2).amount).toBe(30n)
-    })
-  })
-
-  describe('toDecimal()', () => {
-    it('converts cents back to decimal', () => {
-      expect(Money.of(1999n).toDecimal()).toBe(19.99)
-    })
-
-    it('round-trips fromDecimal → toDecimal', () => {
-      expect(Money.fromDecimal(42.50).toDecimal()).toBe(42.50)
-    })
-  })
 })

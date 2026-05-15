@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import type { Wallet } from '@/domain/wallet.entity';
+import type { Wallet } from '@/domain/wallet.aggregate';
 
 /** API response shape for a player's wallet. */
 export class WalletResponseDto {

@@ -7,7 +7,7 @@ import { CreateWalletUseCase } from '../../src/application/use-cases/create-wall
 import { GetMyWalletUseCase } from '../../src/application/use-cases/get-my-wallet.use-case';
 import { WALLET_REPOSITORY } from '../../src/domain/ports/wallet.repository';
 import type { IWalletRepository } from '../../src/domain/ports/wallet.repository';
-import { Wallet } from '../../src/domain/wallet.entity';
+import { Wallet } from '../../src/domain/wallet.aggregate';
 import { KeycloakJwtGuard, type AuthenticatedRequest } from '../../src/infrastructure/auth/keycloak-jwt.guard';
 
 // ---------------------------------------------------------------------------
