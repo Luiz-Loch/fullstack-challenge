@@ -1,10 +1,11 @@
-import { Controller, Get, Logger, Query, UnprocessableEntityException } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
+import { Controller, Get, Logger, Param, ParseUUIDPipe, Query, UnprocessableEntityException } from '@nestjs/common';
+import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
 import { GetCurrentRoundUseCase } from '@/application/use-cases/get-current-round.use-case';
 import { GetRoundHistoryUseCase } from '@/application/use-cases/get-round-history.use-case';
 import { VerifyRoundUseCase } from '@/application/use-cases/verify-round.use-case';
 import { RoundCurrentResponseDto, toRoundCurrentResponseDto } from '../dtos/round-current-response.dto';
 import { RoundHistoryItemDto, toRoundHistoryItemDto } from '../dtos/round-history-response.dto';
+import { VerifyRoundResponseDto, toVerifyRoundResponseDto } from '../dtos/verify-round-response.dto';
 import { PaginatedResponseDto } from '../dtos/paginated-response.dto';
 import { PaginationQueryDto } from '../dtos/pagination-query.dto';
 
@@ -57,6 +58,24 @@ export class RoundsController {
 
     this.logger.debug(`GET /rounds/history — total=${total} returned=${rounds.length}`);
     return new PaginatedResponseDto(rounds.map(toRoundHistoryItemDto), total, query.page, query.limit);
+  }
+
+  /**
+   * Returns provably fair verification data for a completed round.
+   * The server seed is only revealed after the round crashes — use serverSeedHash to verify pre-round commitment.
+   * Throws 404 if the round does not exist, 422 if the round has not crashed yet.
+   */
+  @Get(':roundId/verify')
+  @ApiOperation({ summary: 'Get provably fair verification data for a completed round' })
+  @ApiOkResponse({ type: VerifyRoundResponseDto })
+  @ApiNotFoundResponse({ description: 'Round not found' })
+  @ApiUnprocessableEntityResponse({ description: 'Round has not crashed yet' })
+  async verify(@Param('roundId', ParseUUIDPipe) roundId: string): Promise<VerifyRoundResponseDto> {
+    this.logger.log(`GET /rounds/${roundId}/verify`);
+
+    const result = await this.verifyRound.execute(roundId);
+    this.logger.log(`GET /rounds/${roundId}/verify — verified=${result.verified}`);
+    return toVerifyRoundResponseDto(result);
   }
 
 }
