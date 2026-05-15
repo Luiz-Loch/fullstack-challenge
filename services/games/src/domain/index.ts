@@ -10,5 +10,3 @@ export { CashOutProcessed } from './events/cash-out-processed.event';
 export { Bet } from './bet.entity';
 export { Round } from './round.aggregate';
 export { ProvablyFair } from './provably-fair';
-export { IRoundRepository, ROUND_REPOSITORY } from './ports/round.repository';
-export { IBetRepository, BET_REPOSITORY } from './ports/bet.repository';
