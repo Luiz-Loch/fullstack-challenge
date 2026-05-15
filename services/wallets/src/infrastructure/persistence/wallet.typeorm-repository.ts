@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wallet } from '@/domain/wallet.aggregate';
-import { IWalletRepository } from '@/domain/ports/wallet.repository';
+import { type IWalletRepository } from '@/domain/ports/wallet.repository';
 import { WalletOrmEntity } from './wallet.orm-entity';
+import { WalletMapper } from './mapper/wallet.mapper';
 
 /** TypeORM implementation of {@link IWalletRepository}. */
 @Injectable()
@@ -15,40 +16,32 @@ export class WalletTypeOrmRepository
   constructor(
     @InjectRepository(WalletOrmEntity)
     private readonly repository: Repository<WalletOrmEntity>,
+    private readonly walletMapper: WalletMapper,
   ) {}
 
   /** Saves the wallet row, including the latest balance. */
   async save(wallet: Wallet): Promise<void> {
-    await this.repository.save({
-      id: wallet.id,
-      playerId: wallet.playerId,
-      balanceCents: wallet.balance.amount.toString(),
-    }).catch((err: Error) => {
-      this.logger.error(`Failed to save wallet ${wallet.id}: ${err.message}`, err.stack);
-      throw err;
-    });
+    this.logger.debug(`Saving wallet id=${wallet.id} player=${wallet.playerId} balance=${wallet.balance.amount}`);
+    await this.repository.save(this.walletMapper.toOrm(wallet));
   }
 
+  /** Returns null when no wallet exists for the given playerId. */
   async findByPlayerId(playerId: string): Promise<Wallet | null> {
-    return this.repository.findOneBy({ playerId })
-      .then(row => row ? this.toDomain(row) : null)
-      .catch((err: Error) => {
-        this.logger.error(`Failed to query wallet by playerId ${playerId}: ${err.message}`, err.stack);
-        throw err;
-      });
+    this.logger.debug(`Finding wallet by playerId=${playerId}`);
+    const entity = await this.repository.findOneBy({ playerId });
+    if (!entity) {
+      this.logger.debug(`Wallet not found for playerId=${playerId}`);
+    }
+    return entity ? this.walletMapper.toDomain(entity) : null;
   }
 
+  /** Returns null when no wallet exists for the given id. */
   async findById(id: string): Promise<Wallet | null> {
-    return this.repository.findOneBy({ id })
-      .then(row => row ? this.toDomain(row) : null)
-      .catch((err: Error) => {
-        this.logger.error(`Failed to query wallet by id ${id}: ${err.message}`, err.stack);
-        throw err;
-      });
-  }
-
-  /** Maps a raw ORM row back to the {@link Wallet} aggregate without emitting events. */
-  private toDomain(row: WalletOrmEntity): Wallet {
-    return Wallet.reconstitute(row.id, row.playerId, BigInt(row.balanceCents));
+    this.logger.debug(`Finding wallet by id=${id}`);
+    const entity = await this.repository.findOneBy({ id });
+    if (!entity) {
+      this.logger.debug(`Wallet not found for id=${id}`);
+    }
+    return entity ? this.walletMapper.toDomain(entity) : null;
   }
 }
