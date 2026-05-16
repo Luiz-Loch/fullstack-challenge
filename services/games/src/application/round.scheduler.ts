@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { randomUUID, UUID } from 'crypto';
 import { Multiplier, ProvablyFair, Round, RoundStatus } from '@/domain';
+import { type IBetRepository, BET_REPOSITORY } from '@/domain/ports/bet.repository';
 import { type IRoundRepository, ROUND_REPOSITORY } from '@/domain/ports/round.repository';
 
 // Betting window before each round starts.
@@ -46,6 +47,8 @@ export class RoundScheduler
   constructor(
     @Inject(ROUND_REPOSITORY)
     private readonly roundRepository: IRoundRepository,
+    @Inject(BET_REPOSITORY)
+    private readonly betRepository: IBetRepository,
     private readonly provablyFair: ProvablyFair,
   ) { }
 
@@ -129,13 +132,24 @@ export class RoundScheduler
   private async crashRound(): Promise<void> {
     if (!this.currentRound || !this.pendingServerSeed) return;
 
+    const roundId = this.currentRound.id;
     const serverSeed = this.pendingServerSeed;
     this.pendingServerSeed = null;
 
-    this.currentRound.crash(serverSeed);
-    await this.roundRepository.save(this.currentRound);
+    // Reload from DB to get the actual bets placed by players — the in-memory
+    // currentRound was created at openNewRound() and never receives bet updates.
+    const roundWithBets = await this.roundRepository.findById(roundId);
+    if (!roundWithBets) {
+      this.logger.error(`Round not found on crash: id=${roundId}`);
+      return;
+    }
 
-    this.logger.log(`Round crashed: id=${this.currentRound.id} at=${this.multiplier.centesimals}cs`);
+    roundWithBets.crash(serverSeed);
+    this.currentRound = roundWithBets; // keep snapshot in sync with CRASHED status
+    await this.roundRepository.save(roundWithBets);
+    await Promise.all(roundWithBets.bets.map(bet => this.betRepository.save(bet)));
+
+    this.logger.log(`Round crashed: id=${roundId} at=${this.multiplier.centesimals}cs`);
 
     setTimeout(() => void this.openNewRound(), POST_CRASH_WAIT_MS);
   }

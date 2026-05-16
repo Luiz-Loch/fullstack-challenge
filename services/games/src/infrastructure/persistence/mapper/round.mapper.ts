@@ -33,7 +33,9 @@ export class RoundMapper {
     entity.startedAt = round.startedAt;
     entity.crashedAt = round.crashedAt;
     entity.createdAt = round.createdAt;
-    entity.bets = round.bets.map(bet => this.betMapper.toOrm(bet, entity));
+    // bets are never included here — they are owned by BetTypeOrmRepository.
+    // Setting bets on the entity (even to []) causes TypeORM to emit
+    // UPDATE bets SET round_id = null for rows not in the array.
     return entity;
   }
 }

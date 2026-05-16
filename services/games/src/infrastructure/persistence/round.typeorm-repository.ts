@@ -27,7 +27,7 @@ export class RoundTypeOrmRepository
 
   async findById(id: string): Promise<Round | null> {
     this.logger.debug(`Finding round id=${id}`);
-    const entity = await this.repository.findOne({ where: { id } });
+    const entity = await this.repository.findOne({ where: { id }, relations: ['bets'] });
     if (!entity) this.logger.debug(`Round not found id=${id}`);
     return entity ? this.roundMapper.toDomain(entity) : null;
   }
@@ -37,6 +37,7 @@ export class RoundTypeOrmRepository
     const entity = await this.repository.findOne({
       where: [{ status: RoundStatus.BETTING }, { status: RoundStatus.RUNNING }],
       order: { createdAt: 'DESC' },
+      relations: ['bets'],
     });
     return entity ? this.roundMapper.toDomain(entity) : null;
   }

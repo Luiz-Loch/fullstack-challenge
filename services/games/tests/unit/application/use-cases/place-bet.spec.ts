@@ -1,4 +1,5 @@
 import { describe, it, expect, mock } from 'bun:test';
+import { ConflictException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { PlaceBetUseCase } from '../../../../src/application/use-cases/place-bet.use-case';
 import { Round } from '../../../../src/domain/round.aggregate';
 import { Money } from '../../../../src/domain/value-objects/money.vo';
@@ -13,8 +14,14 @@ function bettingRound(): Round {
 
 function makeRepository(round: Round | null) {
   return {
-    findById: mock(() => Promise.resolve(round)),
+    findCurrent: mock(() => Promise.resolve(round)),
     save: mock(() => Promise.resolve()),
+  };
+}
+
+function makeBetRepository() {
+  return {
+    save: mock(() => Promise.resolve())
   };
 }
 
@@ -23,9 +30,9 @@ describe('PlaceBetUseCase', () => {
     it('returns bet data when round is in BETTING state', async () => {
       const round = bettingRound();
       const repository = makeRepository(round);
-      const useCase = new PlaceBetUseCase(repository as any);
+      const useCase = new PlaceBetUseCase(repository as any, makeBetRepository() as any);
 
-      const result = await useCase.execute({ roundId: round.id, playerId: PLAYER_ID, amountCents: AMOUNT });
+      const result = await useCase.execute({ playerId: PLAYER_ID, amountCents: AMOUNT });
 
       expect(result.roundId).toBe(round.id);
       expect(result.amountCents).toBe(AMOUNT);
@@ -33,53 +40,53 @@ describe('PlaceBetUseCase', () => {
       expect(result.placedAt).toBeInstanceOf(Date);
     });
 
-    it('persists the round after placing the bet', async () => {
+    it('persists the bet via the bet repository', async () => {
       const round = bettingRound();
-      const repository = makeRepository(round);
-      const useCase = new PlaceBetUseCase(repository as any);
+      const betRepository = makeBetRepository();
+      const useCase = new PlaceBetUseCase(makeRepository(round) as any, betRepository as any);
 
-      await useCase.execute({ roundId: round.id, playerId: PLAYER_ID, amountCents: AMOUNT });
+      await useCase.execute({ playerId: PLAYER_ID, amountCents: AMOUNT });
 
-      expect(repository.save).toHaveBeenCalledTimes(1);
+      expect(betRepository.save).toHaveBeenCalledTimes(1);
     });
 
-    it('throws when round is not found', async () => {
-      const roundId = 'unknown-id';
+    it('throws NotFoundException when there is no active round', async () => {
       const repository = makeRepository(null);
-      const useCase = new PlaceBetUseCase(repository as any);
+      const useCase = new PlaceBetUseCase(repository as any, makeBetRepository() as any);
 
-      expect(useCase.execute({ roundId, playerId: PLAYER_ID, amountCents: AMOUNT }))
-        .rejects.toThrow(`Round ${roundId} not found`);
+      expect(useCase.execute({ playerId: PLAYER_ID, amountCents: AMOUNT }))
+        .rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('does not persist when round is not found', async () => {
+    it('does not persist when there is no active round', async () => {
       const repository = makeRepository(null);
-      const useCase = new PlaceBetUseCase(repository as any);
+      const betRepository = makeBetRepository();
+      const useCase = new PlaceBetUseCase(repository as any, betRepository as any);
 
-      await useCase.execute({ roundId: 'unknown-id', playerId: PLAYER_ID, amountCents: AMOUNT }).catch(() => {});
+      await useCase.execute({ playerId: PLAYER_ID, amountCents: AMOUNT }).catch(() => { });
 
-      expect(repository.save).not.toHaveBeenCalled();
+      expect(betRepository.save).not.toHaveBeenCalled();
     });
 
-    it('throws when round is not in BETTING state', async () => {
+    it('throws UnprocessableEntityException when round is not in BETTING state', async () => {
       const round = bettingRound();
       round.placeBet(PLAYER_ID, Money.of(AMOUNT));
       round.start();
       const repository = makeRepository(round);
-      const useCase = new PlaceBetUseCase(repository as any);
+      const useCase = new PlaceBetUseCase(repository as any, makeBetRepository() as any);
 
-      expect(useCase.execute({ roundId: round.id, playerId: 'other-player', amountCents: AMOUNT }))
-        .rejects.toThrow('Bets are only accepted during the BETTING phase');
+      expect(useCase.execute({ playerId: 'other-player', amountCents: AMOUNT }))
+        .rejects.toBeInstanceOf(UnprocessableEntityException);
     });
 
-    it('throws when player already has a bet in the round', async () => {
+    it('throws ConflictException when player already has a bet in the round', async () => {
       const round = bettingRound();
       round.placeBet(PLAYER_ID, Money.of(AMOUNT));
       const repository = makeRepository(round);
-      const useCase = new PlaceBetUseCase(repository as any);
+      const useCase = new PlaceBetUseCase(repository as any, makeBetRepository() as any);
 
-      expect(useCase.execute({ roundId: round.id, playerId: PLAYER_ID, amountCents: AMOUNT }))
-        .rejects.toThrow('Player already has a bet in this round');
+      expect(useCase.execute({ playerId: PLAYER_ID, amountCents: AMOUNT }))
+        .rejects.toBeInstanceOf(ConflictException);
     });
   });
 });

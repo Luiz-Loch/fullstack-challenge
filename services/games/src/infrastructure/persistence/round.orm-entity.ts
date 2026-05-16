@@ -33,6 +33,6 @@ export class RoundOrmEntity {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
-  @OneToMany(() => BetOrmEntity, (bet) => bet.round, { cascade: true, eager: true })
+  @OneToMany(() => BetOrmEntity, (bet) => bet.round, { eager: true })
   bets!: Relation<BetOrmEntity[]>;
 }
