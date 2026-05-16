@@ -43,6 +43,7 @@ export class RoundTypeOrmRepository
 
   /** Returns CRASHED rounds in reverse chronological order. */
   async findHistory(limit: number, offset: number): Promise<{ rounds: Round[]; total: number }> {
+    this.logger.debug(`Finding round history limit=${limit} offset=${offset}`);
     const [entities, total] = await this.repository.findAndCount({
       where: { status: RoundStatus.CRASHED },
       order: { crashedAt: 'DESC' },

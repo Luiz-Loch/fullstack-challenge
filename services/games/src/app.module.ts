@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { BetsController } from './presentation/controllers/bets.controller';
 import { GamesController } from './presentation/controllers/games.controller';
 import { PostgresConfigService } from './infrastructure/database/postgres-config.service';
 import { RoundOrmEntity } from './infrastructure/persistence/round.orm-entity';
@@ -19,6 +20,7 @@ import { KeycloakJwtGuard } from './infrastructure/auth/keycloak-jwt.guard';
 import { RoundsController } from './presentation/controllers/rounds.controller';
 import { GetCurrentRoundUseCase } from './application/use-cases/get-current-round.use-case';
 import { GetRoundHistoryUseCase } from './application/use-cases/get-round-history.use-case';
+import { GetPlayerBetHistoryUseCase } from './application/use-cases/get-player-bet-history.use-case';
 import { VerifyRoundUseCase } from './application/use-cases/verify-round.use-case';
 
 @Module({
@@ -27,7 +29,7 @@ import { VerifyRoundUseCase } from './application/use-cases/verify-round.use-cas
     TypeOrmModule.forRootAsync({ useClass: PostgresConfigService }),
     TypeOrmModule.forFeature([RoundOrmEntity, BetOrmEntity]),
   ],
-  controllers: [GamesController, RoundsController],
+  controllers: [BetsController, GamesController, RoundsController],
   providers: [
     RoundTypeOrmRepository,
     { provide: ROUND_REPOSITORY, useExisting: RoundTypeOrmRepository },
@@ -36,6 +38,7 @@ import { VerifyRoundUseCase } from './application/use-cases/verify-round.use-cas
     BetMapper,
     CashOutUseCase,
     GetCurrentRoundUseCase,
+    GetPlayerBetHistoryUseCase,
     GetRoundHistoryUseCase,
     KeycloakJwtGuard,
     PlaceBetUseCase,

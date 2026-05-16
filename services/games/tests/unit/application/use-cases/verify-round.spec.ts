@@ -1,10 +1,9 @@
 import { describe, it, expect, mock } from 'bun:test';
 import { VerifyRoundUseCase } from '../../../../src/application/use-cases/verify-round.use-case';
-import { RoundNotCrashedError, RoundNotFoundError } from '../../../../src/domain/errors';
 import { Round } from '../../../../src/domain/round.aggregate';
 import { Multiplier } from '../../../../src/domain/value-objects/multiplier.vo';
 import { Money } from '../../../../src/domain/value-objects/money.vo';
-import { RoundStatus } from '../../../../src/domain/enums/round-status.enum';
+import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 
 const CRASH_POINT = Multiplier.of(200n);
 const SERVER_SEED = 'server-seed-abc';
@@ -41,19 +40,19 @@ describe('VerifyRoundUseCase', () => {
     it('throws RoundNotFoundError when round does not exist', async () => {
       const useCase = new VerifyRoundUseCase(makeRepository(null) as any, makeProvablyFair(true) as any);
 
-      expect(useCase.execute('unknown-id')).rejects.toBeInstanceOf(RoundNotFoundError);
+      expect(useCase.execute('unknown-id')).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('throws RoundNotCrashedError when round is in BETTING state', async () => {
       const useCase = new VerifyRoundUseCase(makeRepository(bettingRound()) as any, makeProvablyFair(true) as any);
 
-      expect(useCase.execute('any-id')).rejects.toBeInstanceOf(RoundNotCrashedError);
+      expect(useCase.execute('any-id')).rejects.toBeInstanceOf(UnprocessableEntityException);
     });
 
     it('throws RoundNotCrashedError when round is in RUNNING state', async () => {
       const useCase = new VerifyRoundUseCase(makeRepository(runningRound()) as any, makeProvablyFair(true) as any);
 
-      expect(useCase.execute('any-id')).rejects.toBeInstanceOf(RoundNotCrashedError);
+      expect(useCase.execute('any-id')).rejects.toBeInstanceOf(UnprocessableEntityException);
     });
 
     it('returns verified=true when provably fair check passes', async () => {
@@ -104,7 +103,7 @@ describe('VerifyRoundUseCase', () => {
       const repository = makeRepository(null);
       const useCase = new VerifyRoundUseCase(repository as any, makeProvablyFair(true) as any);
 
-      await useCase.execute('specific-id').catch(() => {});
+      await useCase.execute('specific-id').catch(() => { });
 
       expect(repository.findById).toHaveBeenCalledWith('specific-id');
     });
