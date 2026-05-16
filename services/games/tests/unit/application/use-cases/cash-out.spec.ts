@@ -1,4 +1,5 @@
 import { describe, it, expect, mock } from 'bun:test';
+import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { CashOutUseCase } from '../../../../src/application/use-cases/cash-out.use-case';
 import { Round } from '../../../../src/domain/round.aggregate';
 import { Money } from '../../../../src/domain/value-objects/money.vo';
@@ -6,7 +7,7 @@ import { Multiplier } from '../../../../src/domain/value-objects/multiplier.vo';
 
 const PLAYER_ID = 'player-uuid';
 const AMOUNT = 1000n;
-const MULTIPLIER = 200n;
+const MULTIPLIER = Multiplier.of(200n);
 
 function runningRoundWithBet(playerId = PLAYER_ID): Round {
   const round = Round.create(Multiplier.of(300n), 'seed-hash', 'client-seed');
@@ -15,73 +16,74 @@ function runningRoundWithBet(playerId = PLAYER_ID): Round {
   return round;
 }
 
-function makeRepository(round: Round | null) {
-  return {
-    findById: mock(() => Promise.resolve(round)),
-    save: mock(() => Promise.resolve()),
-  };
+function makeRoundRepository(round: Round | null) {
+  return { findById: mock(() => Promise.resolve(round)), save: mock(() => Promise.resolve()) };
+}
+
+function makeBetRepository() {
+  return { save: mock(() => Promise.resolve()) };
+}
+
+function makeUseCase(round: Round | null) {
+  return new CashOutUseCase(makeRoundRepository(round) as any, makeBetRepository() as any);
 }
 
 describe('CashOutUseCase', () => {
   describe('execute()', () => {
     it('returns payout data when round is RUNNING and player has a bet', async () => {
       const round = runningRoundWithBet();
-      const repository = makeRepository(round);
-      const useCase = new CashOutUseCase(repository as any);
+      const useCase = makeUseCase(round);
 
       const result = await useCase.execute({ roundId: round.id, playerId: PLAYER_ID, currentMultiplier: MULTIPLIER });
 
       expect(result.roundId).toBe(round.id);
       expect(result.betId).toBeString();
-      expect(result.payoutCents).toBe((AMOUNT * MULTIPLIER) / 100n);
+      expect(result.payoutCents.amount).toBe((AMOUNT * MULTIPLIER.centesimals) / 100n);
       expect(result.cashedOutAt).toBeInstanceOf(Date);
     });
 
-    it('persists the round after cash out', async () => {
+    it('persists the bet via bet repository', async () => {
       const round = runningRoundWithBet();
-      const repository = makeRepository(round);
-      const useCase = new CashOutUseCase(repository as any);
+      const betRepository = makeBetRepository();
+      const useCase = new CashOutUseCase(makeRoundRepository(round) as any, betRepository as any);
 
       await useCase.execute({ roundId: round.id, playerId: PLAYER_ID, currentMultiplier: MULTIPLIER });
 
-      expect(repository.save).toHaveBeenCalledTimes(1);
-    });
-
-    it('throws when round is not found', async () => {
-      const roundId = 'unknown-id';
-      const repository = makeRepository(null);
-      const useCase = new CashOutUseCase(repository as any);
-
-      expect(useCase.execute({ roundId, playerId: PLAYER_ID, currentMultiplier: MULTIPLIER }))
-        .rejects.toThrow(`Round ${roundId} not found`);
+      expect(betRepository.save).toHaveBeenCalledTimes(1);
     });
 
     it('does not persist when round is not found', async () => {
-      const repository = makeRepository(null);
-      const useCase = new CashOutUseCase(repository as any);
+      const betRepository = makeBetRepository();
+      const useCase = new CashOutUseCase(makeRoundRepository(null) as any, betRepository as any);
 
-      await useCase.execute({ roundId: 'unknown-id', playerId: PLAYER_ID, currentMultiplier: MULTIPLIER }).catch(() => { });
+      await useCase.execute({ roundId: 'unknown-id', playerId: PLAYER_ID, currentMultiplier: MULTIPLIER }).catch(() => {});
 
-      expect(repository.save).not.toHaveBeenCalled();
+      expect(betRepository.save).not.toHaveBeenCalled();
     });
 
-    it('throws when round is in BETTING state', async () => {
-      const round = Round.create(Multiplier.of(200n), 'seed-hash', 'client-seed');
+    it('throws NotFoundException when round is not found', async () => {
+      const roundId = 'unknown-id';
+      const useCase = makeUseCase(null);
+
+      expect(useCase.execute({ roundId, playerId: PLAYER_ID, currentMultiplier: MULTIPLIER }))
+        .rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('throws UnprocessableEntityException when round is in BETTING state', async () => {
+      const round = Round.create(Multiplier.of(300n), 'seed-hash', 'client-seed');
       round.placeBet(PLAYER_ID, Money.of(AMOUNT));
-      const repository = makeRepository(round);
-      const useCase = new CashOutUseCase(repository as any);
+      const useCase = makeUseCase(round);
 
       expect(useCase.execute({ roundId: round.id, playerId: PLAYER_ID, currentMultiplier: MULTIPLIER }))
-        .rejects.toThrow('Cash outs are only accepted during the RUNNING phase');
+        .rejects.toBeInstanceOf(UnprocessableEntityException);
     });
 
-    it('throws when player has no active bet in the round', async () => {
+    it('throws UnprocessableEntityException when player has no pending bet', async () => {
       const round = runningRoundWithBet('other-player');
-      const repository = makeRepository(round);
-      const useCase = new CashOutUseCase(repository as any);
+      const useCase = makeUseCase(round);
 
       expect(useCase.execute({ roundId: round.id, playerId: PLAYER_ID, currentMultiplier: MULTIPLIER }))
-        .rejects.toThrow('No active bet found for player in this round');
+        .rejects.toBeInstanceOf(UnprocessableEntityException);
     });
   });
 });

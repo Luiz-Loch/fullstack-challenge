@@ -5,6 +5,7 @@ import { Money } from '@/domain/value-objects/money.vo';
 
 
 export interface PlaceBetCommand {
+  roundId: string;
   playerId: string;
   amountCents: bigint;
 }
@@ -12,7 +13,7 @@ export interface PlaceBetCommand {
 export interface PlaceBetResult {
   betId: string;
   roundId: string;
-  amountCents: bigint;
+  amountCents: Money;
   placedAt: Date;
 }
 
@@ -46,9 +47,9 @@ export class PlaceBetUseCase {
   async execute(command: PlaceBetCommand): Promise<PlaceBetResult> {
     this.logger.log(`Placing bet: player=${command.playerId} amount=${command.amountCents}`);
 
-    const round = await this.roundRepository.findCurrent();
+    const round = await this.roundRepository.findById(command.roundId);
     if (!round) {
-      this.logger.warn(`Round not found for placing bet: player=${command.playerId}`);
+      this.logger.warn(`Round not found for placing bet: player=${command.playerId}, roundId=${command.roundId}`);
       throw new NotFoundException(`Round not found`);
     }
 
