@@ -13,9 +13,10 @@ import { CashOutProcessed } from '../../../src/domain/events/cash-out-processed.
 const CRASH_POINT = Multiplier.of(235n);
 const SEED_HASH = 'abc123hash';
 const SERVER_SEED = 'secret-seed';
+const CLIENT_SEED = 'client-seed-abc123';
 
 function newBettingRound(): Round {
-  return Round.create(CRASH_POINT, SEED_HASH);
+  return Round.create(CRASH_POINT, SEED_HASH, CLIENT_SEED);
 }
 
 function newRunningRound(): Round {
@@ -50,7 +51,7 @@ describe('Round', () => {
 
   describe('reconstitute()', () => {
     it('restores state without emitting events', () => {
-      const round = Round.reconstitute('id-1', RoundStatus.RUNNING, 235n, SEED_HASH, null, new Date(), null, new Date());
+      const round = Round.reconstitute('id-1', RoundStatus.RUNNING, 235n, SEED_HASH, null, CLIENT_SEED, new Date(), null, new Date());
       expect(round.status).toBe(RoundStatus.RUNNING);
       expect(round.domainEvents).toHaveLength(0);
     });

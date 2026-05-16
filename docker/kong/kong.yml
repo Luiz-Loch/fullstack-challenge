@@ -1,40 +1,18 @@
 _format_version: "3.0"
 
-# Route map (strip_path: false — Kong forwards the full path as-is):
-#
-#   GET  /wallets/health      ->  GET  /wallets/health       (liveness probe)
-#   POST /wallets             ->  POST /wallets              (create wallet)
-#   GET  /wallets/me          ->  GET  /wallets/me           (get my wallet)
-#   GET  /wallets/docs        ->  GET  /wallets/docs         (Swagger UI + assets)
-#
-#   GET  /games/...           ->  GET  /games/...            (game service — TBD)
-
 services:
-  - name: wallets-service
-    url: http://wallets:4002
-    routes:
-      - name: wallets-health
-        methods: [GET]
-        paths: [/wallets/health]
-        strip_path: false
-
-      - name: wallets-create
-        methods: [POST]
-        paths: [/wallets]
-        strip_path: false
-
-      - name: wallets-me
-        methods: [GET]
-        paths: [/wallets/me]
-        strip_path: false
-
-      - name: wallets-docs
-        paths: [/wallets/docs]
-        strip_path: false
-
   - name: games-service
     url: http://games:4001
     routes:
       - name: games-routes
-        paths: [/games]
-        strip_path: false
+        paths:
+          - /games
+        strip_path: true
+
+  - name: wallets-service
+    url: http://wallets:4002
+    routes:
+      - name: wallets-routes
+        paths:
+          - /wallets
+        strip_path: true

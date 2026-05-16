@@ -17,7 +17,7 @@ export class WalletOrmEntity {
   playerId!: string;
 
   // pg driver returns BIGINT columns as string — converted to bigint in toDomain()
-  @Column({ name: 'balance_cents', type: 'bigint' })
+  @Column({ name: 'balance_cents', type: 'bigint', nullable: false })
   balanceCents!: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz', nullable: false })

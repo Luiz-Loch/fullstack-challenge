@@ -9,7 +9,7 @@ import { WalletResponseDto, toWalletResponseDto } from '../dtos/wallet-response.
 
 /** REST controller for the `/wallets` resource. */
 @ApiTags('wallets')
-@Controller('wallets')
+@Controller()
 export class WalletsController {
   private readonly logger = new Logger(WalletsController.name);
 

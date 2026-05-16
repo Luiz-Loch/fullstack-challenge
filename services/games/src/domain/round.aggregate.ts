@@ -41,6 +41,12 @@ export class Round {
     /** Revealed only when the round crashes. Null while BETTING or RUNNING. */
     private _serverSeed: string | null,
 
+    /**
+     * External unpredictable seed (e.g. Bitcoin block hash) combined with serverSeed
+     * via HMAC to produce the crash point.
+     */
+    private readonly _clientSeed: string,
+
     private _startedAt: Date | null,
 
     private _crashedAt: Date | null,
@@ -64,6 +70,10 @@ export class Round {
 
   get serverSeed(): string | null {
     return this._serverSeed;
+  }
+
+  get clientSeed(): string {
+    return this._clientSeed;
   }
 
   get startedAt(): Date | null {
@@ -101,14 +111,16 @@ export class Round {
    *
    * @param crashPoint - Pre-determined crash point (hidden until crash).
    * @param serverSeedHash - SHA256 of the server seed, published immediately for player verification.
+   * @param clientSeed - External unpredictable seed used to derive the crash point.
    */
-  static create(crashPoint: Multiplier, serverSeedHash: string): Round {
+  static create(crashPoint: Multiplier, serverSeedHash: string, clientSeed: string): Round {
     const round = new Round(
       randomUUID(),
       RoundStatus.BETTING,
       crashPoint,
       serverSeedHash,
       null,
+      clientSeed,
       null,
       null,
       new Date(),
@@ -128,6 +140,7 @@ export class Round {
     crashPointCentesimals: bigint,
     serverSeedHash: string,
     serverSeed: string | null,
+    clientSeed: string,
     startedAt: Date | null,
     crashedAt: Date | null,
     createdAt: Date,
@@ -139,6 +152,7 @@ export class Round {
       Multiplier.of(crashPointCentesimals),
       serverSeedHash,
       serverSeed,
+      clientSeed,
       startedAt,
       crashedAt,
       createdAt,
