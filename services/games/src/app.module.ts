@@ -22,6 +22,7 @@ import { GetCurrentRoundUseCase } from './application/use-cases/get-current-roun
 import { GetRoundHistoryUseCase } from './application/use-cases/get-round-history.use-case';
 import { GetPlayerBetHistoryUseCase } from './application/use-cases/get-player-bet-history.use-case';
 import { VerifyRoundUseCase } from './application/use-cases/verify-round.use-case';
+import { WalletClient } from './infrastructure/messaging/wallet.client';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { VerifyRoundUseCase } from './application/use-cases/verify-round.use-cas
     RoundMapper,
     RoundScheduler,
     VerifyRoundUseCase,
+    WalletClient,
   ],
 })
 export class AppModule { }
