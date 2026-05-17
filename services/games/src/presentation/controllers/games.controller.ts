@@ -1,5 +1,5 @@
 import { Controller, Get } from "@nestjs/common";
-import { HealthCheckResponseDto } from "../dtos/health-check-response.dto";
+import { HealthCheckResponseDto } from "./dtos/health-check-response.dto";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 @ApiTags('games')

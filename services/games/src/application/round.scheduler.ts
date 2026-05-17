@@ -3,6 +3,8 @@ import { randomUUID, UUID } from 'crypto';
 import { Multiplier, ProvablyFair, Round, RoundStatus } from '@/domain';
 import { type IBetRepository, BET_REPOSITORY } from '@/domain/ports/bet.repository';
 import { type IRoundRepository, ROUND_REPOSITORY } from '@/domain/ports/round.repository';
+import { BetStatus } from '@/domain/enums/bet-status.enum';
+import { WalletClient } from '@/infrastructure/messaging/wallet.client';
 
 // Betting window before each round starts.
 const BETTING_PHASE_MS = 10_000;
@@ -50,6 +52,7 @@ export class RoundScheduler
     @Inject(BET_REPOSITORY)
     private readonly betRepository: IBetRepository,
     private readonly provablyFair: ProvablyFair,
+    private readonly walletClient: WalletClient,
   ) { }
 
   async onModuleInit(): Promise<void> {
@@ -148,6 +151,12 @@ export class RoundScheduler
     this.currentRound = roundWithBets; // keep snapshot in sync with CRASHED status
     await this.roundRepository.save(roundWithBets);
     await Promise.all(roundWithBets.bets.map(bet => this.betRepository.save(bet)));
+
+    for (const bet of roundWithBets.bets) {
+      if (bet.status === BetStatus.CASHED_OUT && bet.payout) {
+        this.walletClient.emitCashOutWon(bet.playerId, bet.payout.amount);
+      }
+    }
 
     this.logger.log(`Round crashed: id=${roundId} at=${this.multiplier.centesimals}cs`);
 

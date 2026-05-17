@@ -3,8 +3,8 @@ import { BetStatus } from './enums/bet-status.enum';
 import { Money } from './value-objects/money.vo';
 import { Multiplier } from './value-objects/multiplier.vo';
 
-const MIN_BET = Money.of(100n);     // R$ 1,00
-const MAX_BET = Money.of(100_000n); // R$ 1.000,00
+const MIN_BET = Money.of(1_00n);     // R$ 1,00
+const MAX_BET = Money.of(1_000_00n); // R$ 1.000,00
 
 /**
  * Bet entity. Belongs to a Round aggregate — never persisted or queried independently.
