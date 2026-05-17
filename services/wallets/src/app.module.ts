@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { WalletsController } from './presentation/controllers/wallets.controller';
 import { WalletEventsController } from './presentation/messaging/wallet-events.controller';
 import { DebitWalletUseCase } from './application/use-cases/debit-wallet.use-case';
+import { CreditWalletUseCase } from './application/use-cases/credit-wallet.use-case';
 import { PostgresConfigService } from './infrastructure/database/postgres-config.service';
 import { WalletOrmEntity } from './infrastructure/persistence/wallet.orm-entity';
 import { WalletTypeOrmRepository } from './infrastructure/persistence/wallet.typeorm-repository';
@@ -26,8 +27,9 @@ import { WalletMapper } from './infrastructure/persistence/mapper/wallet.mapper'
     WalletTypeOrmRepository,
     { provide: WALLET_REPOSITORY, useExisting: WalletTypeOrmRepository},
     CreateWalletUseCase,
-    GetMyWalletUseCase,
+    CreditWalletUseCase,
     DebitWalletUseCase,
+    GetMyWalletUseCase,
     KeycloakJwtGuard,
   ],
 })

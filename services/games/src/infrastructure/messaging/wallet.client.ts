@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 
@@ -14,11 +15,11 @@ export interface DebitResponse {
 export class WalletClient {
   private readonly client: ClientProxy;
 
-  constructor() {
+  constructor(configService: ConfigService) {
     this.client = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
-        urls: [process.env.RABBITMQ_URL ?? 'amqp://localhost:5672'],
+        urls: [configService.getOrThrow<string>('RABBITMQ_URL')],
         queue: 'wallet_queue',
         queueOptions: { durable: true },
       },
@@ -40,4 +41,19 @@ export class WalletClient {
       }),
     );
   }
+
+  /**
+   * Emits a `cash_out_won` event to the Wallet service — fire-and-forget.
+   * The wallet will credit the player's payout asynchronously.
+   *
+   * @param playerId - Keycloak subject (`sub`) of the player who cashed out.
+   * @param payoutCents - Payout amount in cents (bet × multiplier).
+   */
+  emitCashOutWon(playerId: string, payoutCents: bigint): void {
+    this.client.emit('cash_out_won', {
+      playerId,
+      payoutCents: payoutCents.toString(),
+    }).subscribe();
+  }
+
 }

@@ -6,12 +6,12 @@ import { GetPlayerBetHistoryUseCase } from '@/application/use-cases/get-player-b
 import { PlaceBetUseCase } from '@/application/use-cases/place-bet.use-case';
 import { KeycloakJwtGuard } from '@/infrastructure/auth/keycloak-jwt.guard';
 import { PlayerId } from '@/infrastructure/auth/player-id.decorator';
-import { BetHistoryItemDto, toBetHistoryItemDto } from '../dtos/bet-history-response.dto';
-import { CashOutResponseDto, toCashOutResponseDto } from '../dtos/cashout-response.dto';
-import { PaginatedResponseDto } from '../dtos/paginated-response.dto';
-import { PaginationQueryDto } from '../dtos/pagination-query.dto';
-import { PlaceBetRequestDto } from '../dtos/place-bet-request.dto';
-import { PlaceBetResponseDto, toPlaceBetResponseDto } from '../dtos/place-bet-response.dto';
+import { BetHistoryItemDto, toBetHistoryItemDto } from './dtos/bet-history-response.dto';
+import { CashOutResponseDto, toCashOutResponseDto } from './dtos/cashout-response.dto';
+import { PaginatedResponseDto } from './dtos/paginated-response.dto';
+import { PaginationQueryDto } from './dtos/pagination-query.dto';
+import { PlaceBetRequestDto } from './dtos/place-bet-request.dto';
+import { PlaceBetResponseDto, toPlaceBetResponseDto } from './dtos/place-bet-response.dto';
 
 @ApiTags()
 @ApiBearerAuth()

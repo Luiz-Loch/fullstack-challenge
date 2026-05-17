@@ -3,11 +3,11 @@ import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnprocess
 import { GetCurrentRoundUseCase } from '@/application/use-cases/get-current-round.use-case';
 import { GetRoundHistoryUseCase } from '@/application/use-cases/get-round-history.use-case';
 import { VerifyRoundUseCase } from '@/application/use-cases/verify-round.use-case';
-import { RoundCurrentResponseDto, toRoundCurrentResponseDto } from '../dtos/round-current-response.dto';
-import { RoundHistoryItemDto, toRoundHistoryItemDto } from '../dtos/round-history-response.dto';
-import { VerifyRoundResponseDto, toVerifyRoundResponseDto } from '../dtos/verify-round-response.dto';
-import { PaginatedResponseDto } from '../dtos/paginated-response.dto';
-import { PaginationQueryDto } from '../dtos/pagination-query.dto';
+import { RoundCurrentResponseDto, toRoundCurrentResponseDto } from './dtos/round-current-response.dto';
+import { RoundHistoryItemDto, toRoundHistoryItemDto } from './dtos/round-history-response.dto';
+import { VerifyRoundResponseDto, toVerifyRoundResponseDto } from './dtos/verify-round-response.dto';
+import { PaginatedResponseDto } from './dtos/paginated-response.dto';
+import { PaginationQueryDto } from './dtos/pagination-query.dto';
 
 @ApiTags('rounds')
 @Controller('rounds')

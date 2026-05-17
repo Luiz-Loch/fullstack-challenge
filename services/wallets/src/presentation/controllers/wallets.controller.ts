@@ -4,8 +4,8 @@ import { CreateWalletUseCase } from '@/application/use-cases/create-wallet.use-c
 import { GetMyWalletUseCase } from '@/application/use-cases/get-my-wallet.use-case';
 import { KeycloakJwtGuard } from '@/infrastructure/auth/keycloak-jwt.guard';
 import { PlayerId } from '@/infrastructure/auth/player-id.decorator';
-import { HealthCheckResponseDto } from '../dtos/health-check-response.dto';
-import { WalletResponseDto, toWalletResponseDto } from '../dtos/wallet-response.dto';
+import { HealthCheckResponseDto } from './dtos/health-check-response.dto';
+import { WalletResponseDto, toWalletResponseDto } from './dtos/wallet-response.dto';
 
 /** REST controller for the `/wallets` resource. */
 @ApiTags('wallets')
