@@ -3,6 +3,7 @@ import { type IRoundRepository, ROUND_REPOSITORY } from '@/domain/ports/round.re
 import { Multiplier } from '@/domain/value-objects/multiplier.vo';
 import { type IBetRepository, BET_REPOSITORY } from '@/domain/ports/bet.repository';
 import { Money } from '@/domain';
+import { GameGateway } from '@/presentation/gateways/game.gateway';
 
 export interface CashOutCommand {
   roundId: string;
@@ -34,6 +35,7 @@ export class CashOutUseCase {
     private readonly roundRepository: IRoundRepository,
     @Inject(BET_REPOSITORY)
     private readonly betRepository: IBetRepository,
+    private readonly gateway: GameGateway,
   ) { }
 
   /**
@@ -60,7 +62,7 @@ export class CashOutUseCase {
         command.currentMultiplier,
       );
       await this.betRepository.save(bet);
-
+      this.gateway.emitBetCashout(bet.id, command.playerId, bet.username, bet.payout!.amount, command.currentMultiplier.centesimals);
       this.logger.log(`Cash out processed: bet=${bet.id} player=${command.playerId} payout=${bet.payout!.amount}`);
 
       return {

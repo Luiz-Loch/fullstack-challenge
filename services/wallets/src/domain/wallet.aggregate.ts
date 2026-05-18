@@ -48,7 +48,7 @@ export class Wallet {
    * @param playerId - Keycloak subject (`sub`) of the owning player.
    */
   static create(playerId: string): Wallet {
-    const wallet = new Wallet(randomUUID(), playerId, Money.of(0n));
+    const wallet = new Wallet(randomUUID(), playerId, Money.of(10_000_00n)); // R$10.000,00 initial balance for testing/demo purposes
     wallet._domainEvents.push(new WalletCreated(wallet.id, playerId));
     return wallet;
   }

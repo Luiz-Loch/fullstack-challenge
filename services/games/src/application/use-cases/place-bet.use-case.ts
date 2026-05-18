@@ -3,6 +3,7 @@ import { type IBetRepository, BET_REPOSITORY } from '@/domain/ports/bet.reposito
 import { type IRoundRepository, ROUND_REPOSITORY } from '@/domain/ports/round.repository';
 import { Money } from '@/domain/value-objects/money.vo';
 import { WalletClient } from '@/infrastructure/messaging/wallet.client';
+import { GameGateway } from '@/presentation/gateways/game.gateway';
 
 export interface PlaceBetCommand {
   roundId: string;
@@ -28,6 +29,7 @@ export class PlaceBetUseCase {
     @Inject(BET_REPOSITORY)
     private readonly betRepository: IBetRepository,
     private readonly walletClient: WalletClient,
+    private readonly gateway: GameGateway,
   ) { }
 
   async execute(command: PlaceBetCommand): Promise<PlaceBetResult> {
@@ -49,6 +51,7 @@ export class PlaceBetUseCase {
       }
 
       await this.betRepository.save(bet);
+      this.gateway.emitBetPlaced(bet.id, command.playerId, command.username, command.amountCents);
       this.logger.log(`Bet placed: bet=${bet.id} player=${command.playerId} round=${round.id}`);
 
       return {
