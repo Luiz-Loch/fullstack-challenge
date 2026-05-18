@@ -1,12 +1,10 @@
 import { api } from '../lib/api'
-
-export interface Wallet {
-  id: string;
-  playerId: string;
-  balanceCents: string;
-}
+import type { Wallet } from '../types/wallet'
 
 export const walletService = {
-  getMyWallet: () => api.get<Wallet>('wallets/me').then((r) => r.data),
-  create: () => api.post<void>('wallets').then((r) => r.data),
+  /** Returns the authenticated player's wallet including current balance in cents. */
+  getMyWallet: () => api.get<Wallet>('/wallets/me').then((r) => r.data),
+
+  /** Creates a wallet for the authenticated player. Idempotent — safe to call if wallet already exists. */
+  create: () => api.post<void>('/wallets').then((r) => r.data),
 }
