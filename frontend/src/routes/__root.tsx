@@ -11,6 +11,7 @@ import { useEffect } from 'react'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { keycloak } from '../lib/keycloak'
 import { useAuthStore } from '../stores/auth'
+import { walletService } from '../services/wallet.service'
 
 import appCss from '../styles.css?url'
 
@@ -45,6 +46,7 @@ function RootComponent() {
             keycloak.token!,
             keycloak.tokenParsed?.preferred_username ?? '',
           )
+          walletService.create().catch(() => {})
         }
         setReady()
       })
