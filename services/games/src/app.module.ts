@@ -23,6 +23,7 @@ import { GetRoundHistoryUseCase } from './application/use-cases/get-round-histor
 import { GetPlayerBetHistoryUseCase } from './application/use-cases/get-player-bet-history.use-case';
 import { VerifyRoundUseCase } from './application/use-cases/verify-round.use-case';
 import { WalletClient } from './infrastructure/messaging/wallet.client';
+import { GameGateway } from './presentation/gateways/game.gateway';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { WalletClient } from './infrastructure/messaging/wallet.client';
     { provide: BET_REPOSITORY, useExisting: BetTypeOrmRepository },
     BetMapper,
     CashOutUseCase,
+    GameGateway,
     GetCurrentRoundUseCase,
     GetPlayerBetHistoryUseCase,
     GetRoundHistoryUseCase,

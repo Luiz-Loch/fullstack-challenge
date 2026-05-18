@@ -5,6 +5,7 @@ import { type IBetRepository, BET_REPOSITORY } from '@/domain/ports/bet.reposito
 import { type IRoundRepository, ROUND_REPOSITORY } from '@/domain/ports/round.repository';
 import { BetStatus } from '@/domain/enums/bet-status.enum';
 import { WalletClient } from '@/infrastructure/messaging/wallet.client';
+import { GameGateway } from '@/presentation/gateways/game.gateway';
 
 // Betting window before each round starts.
 const BETTING_PHASE_MS = 10_000;
@@ -53,6 +54,7 @@ export class RoundScheduler
     private readonly betRepository: IBetRepository,
     private readonly provablyFair: ProvablyFair,
     private readonly walletClient: WalletClient,
+    private readonly gateway: GameGateway,
   ) { }
 
   async onModuleInit(): Promise<void> {
@@ -104,6 +106,7 @@ export class RoundScheduler
 
     this.logger.log(`Round opened: id=${round.id} crashPoint=${crashPoint.centesimals}cs`);
 
+    this.gateway.emitRoundBetting(round.id, serverSeedHash);
     setTimeout(() => void this.startRound(), BETTING_PHASE_MS);
   }
 
@@ -116,6 +119,7 @@ export class RoundScheduler
 
     this.logger.log(`Round started: id=${this.currentRound.id}`);
 
+    this.gateway.emitRoundStarted(this.currentRound.id);
     this.ticker = setInterval(() => void this.tick(), TICK_INTERVAL_MS);
   }
 
@@ -124,6 +128,8 @@ export class RoundScheduler
 
     const elapsedMs = Date.now() - this.roundStartTime;
     this.multiplier = Multiplier.of(BigInt(Math.floor(2 ** (elapsedMs / T_DOUBLE_MS) * 100)));
+
+    this.gateway.emitMultiplierTick(this.multiplier.centesimals);
 
     if (this.multiplier.greaterThanOrEqual(this.currentRound.crashPoint)) {
       // Clear before first await to prevent any subsequent ticks from firing.
@@ -157,6 +163,12 @@ export class RoundScheduler
         this.walletClient.emitCashOutWon(bet.playerId, bet.payout.amount);
       }
     }
+
+    this.gateway.emitRoundCrashed(
+      roundWithBets.crashPoint.centesimals,
+      serverSeed,
+      roundWithBets.clientSeed,
+    );
 
     this.logger.log(`Round crashed: id=${roundId} at=${this.multiplier.centesimals}cs`);
 
