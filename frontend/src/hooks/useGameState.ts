@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow'
 import { useGameStore } from '../stores/game'
 import type { BetInRound, GamePhase } from '../types/game'
 
@@ -16,7 +17,7 @@ export interface GameState {
  * The store is populated by useGameSocket — mount that hook once at the page level.
  */
 export function useGameState(): GameState {
-  return useGameStore((s) => ({
+  return useGameStore(useShallow((s) => ({
     phase: s.phase,
     multiplier: s.multiplier,
     roundId: s.roundId,
@@ -24,5 +25,5 @@ export function useGameState(): GameState {
     crashPoint: s.crashPoint,
     bets: s.bets,
     hasBet: s.hasBet,
-  }))
+  })))
 }

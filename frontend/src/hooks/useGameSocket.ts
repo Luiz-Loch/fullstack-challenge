@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { io } from 'socket.io-client'
 import { useQueryClient } from '@tanstack/react-query'
 import { keycloak } from '../lib/keycloak'
+import { gameService } from '../services/game.service'
 import { useGameStore } from '../stores/game'
 import { parseCentesimals } from '../types/game'
 
@@ -23,6 +24,7 @@ interface RoundCrashedPayload {
 interface BetPlacedPayload {
   betId: string
   playerId: string
+  username: string
   amountCents: string
 }
 
@@ -30,7 +32,6 @@ interface BetCashoutPayload {
   betId: string
   playerId: string
   payoutCents: string
-  multiplier: string
 }
 
 /**
@@ -47,6 +48,13 @@ export function useGameSocket() {
       auth: { token: keycloak.token },
       transports: ['websocket'],
     })
+
+    gameService.getCurrentRound().then((round) => {
+      store.setRound(round.id, round.serverSeedHash)
+      store.setPhase(round.status)
+      store.setMultiplier(parseCentesimals(round.multiplier))
+      round.bets.forEach((bet) => store.addBet(bet))
+    }).catch(() => {})
 
     socket.on('round:betting', ({ roundId, serverSeedHash }: RoundBettingPayload) => {
       store.reset()
@@ -68,9 +76,10 @@ export function useGameSocket() {
       store.setCrash(parseCentesimals(crashPoint))
     })
 
-    socket.on('bet:placed', ({ betId, playerId: betPlayerId, amountCents }: BetPlacedPayload) => {
+    socket.on('bet:placed', ({ betId, playerId: betPlayerId, username, amountCents }: BetPlacedPayload) => {
       store.addBet({
         id: betId,
+        username,
         amountCents,
         status: 'PENDING',
         payoutCents: null,
@@ -79,7 +88,7 @@ export function useGameSocket() {
       if (betPlayerId === playerId) store.setHasBet(true)
     })
 
-    socket.on('bet:cashout', ({ betId, playerId: betPlayerId, payoutCents, multiplier }: BetCashoutPayload) => {
+    socket.on('bet:cashout', ({ betId, playerId: betPlayerId, payoutCents }: BetCashoutPayload) => {
       store.updateBet(betId, {
         status: 'CASHED_OUT',
         payoutCents,

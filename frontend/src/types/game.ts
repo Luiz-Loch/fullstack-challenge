@@ -14,6 +14,7 @@ export interface RoundHistoryItem {
 
 export interface BetInRound {
   id: string
+  username: string
   amountCents: string
   status: 'PENDING' | 'CASHED_OUT' | 'LOST'
   payoutCents: string | null
