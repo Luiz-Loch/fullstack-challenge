@@ -9,6 +9,7 @@ export class CreateBetsTable1778803200001
         "id"            UUID        NOT NULL,
         "round_id"      UUID        NOT NULL,
         "player_id"     UUID        NOT NULL,
+        "username"      VARCHAR     NOT NULL,
         "amount_cents"  BIGINT      NOT NULL,
         "status"        VARCHAR     NOT NULL,
         "payout_cents"  BIGINT,

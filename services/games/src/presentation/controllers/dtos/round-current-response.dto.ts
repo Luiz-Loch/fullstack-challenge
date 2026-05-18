@@ -4,6 +4,7 @@ import type { CurrentRound } from '@/application/use-cases/get-current-round.use
 
 class BetInRoundDto {
   @ApiProperty() id!: string;
+  @ApiProperty() username!: string;
   @ApiProperty({ example: '1000' }) amountCents!: string;
   @ApiProperty() status!: string;
   @ApiProperty({ nullable: true, example: '1230' }) payoutCents!: string | null;
@@ -21,6 +22,7 @@ export class RoundCurrentResponseDto {
 function toBetInRoundDto(bet: Bet): BetInRoundDto {
   return {
     id: bet.id,
+    username: bet.username,
     amountCents: bet.amount.amount.toString(),
     status: bet.status,
     payoutCents: bet.payout !== null ? bet.payout!.amount.toString() : null,

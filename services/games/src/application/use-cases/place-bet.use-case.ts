@@ -7,6 +7,7 @@ import { WalletClient } from '@/infrastructure/messaging/wallet.client';
 export interface PlaceBetCommand {
   roundId: string;
   playerId: string;
+  username: string;
   amountCents: bigint;
 }
 
@@ -39,7 +40,7 @@ export class PlaceBetUseCase {
     }
 
     try {
-      const bet = round.placeBet(command.playerId, Money.of(command.amountCents));
+      const bet = round.placeBet(command.playerId, command.username, Money.of(command.amountCents));
 
       const debit = await this.walletClient.sendBetPlaced(command.playerId, command.amountCents);
       if (!debit.success) {

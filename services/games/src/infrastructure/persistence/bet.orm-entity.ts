@@ -15,6 +15,9 @@ export class BetOrmEntity {
   @Column({ name: 'player_id', type: 'uuid', nullable: false })
   playerId!: string;
 
+  @Column({ type: 'varchar', nullable: false })
+  username!: string;
+
   /** pg driver returns BIGINT as string — convert to bigint in toDomain(). */
   @Column({ name: 'amount_cents', type: 'bigint', nullable: false })
   amountCents!: string;

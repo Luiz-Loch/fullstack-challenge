@@ -10,6 +10,7 @@ export class BetMapper {
       entity.id,
       roundId,
       entity.playerId,
+      entity.username,
       BigInt(entity.amountCents),
       entity.status,
       entity.payoutCents !== null ? BigInt(entity.payoutCents) : null,
@@ -23,6 +24,7 @@ export class BetMapper {
     entity.id = bet.id;
     entity.round = roundEntity;
     entity.playerId = bet.playerId;
+    entity.username = bet.username;
     entity.amountCents = bet.amount.amount.toString();
     entity.status = bet.status;
     entity.payoutCents = bet.payout !== null ? bet.payout.amount.toString() : null;

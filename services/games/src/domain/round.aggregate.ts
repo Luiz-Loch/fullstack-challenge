@@ -177,7 +177,7 @@ export class Round {
    * Accepts a bet from a player. Emits {@link BetPlaced}.
    * @throws {Error} If round is not in BETTING state, or player already has a bet.
    */
-  placeBet(playerId: string, amount: Money): Bet {
+  placeBet(playerId: string, username: string, amount: Money): Bet {
     this.assertBettingOpen();
 
     const alreadyBet = this._bets.some((b) => b.playerId === playerId);
@@ -185,7 +185,7 @@ export class Round {
       throw new Error('Player already has a bet in this round');
     }
 
-    const bet = Bet.create(this.id, playerId, amount);
+    const bet = Bet.create(this.id, playerId, username, amount);
     this._bets.push(bet);
     this._domainEvents.push(new BetPlaced(this.id, bet.id, playerId, amount.amount));
     return bet;

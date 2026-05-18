@@ -15,6 +15,7 @@ export class Bet {
     readonly id: string,
     readonly roundId: string,
     readonly playerId: string,
+    readonly username: string,
     private readonly _amount: Money,
     private _status: BetStatus,
     private _payout: Money | null,
@@ -41,14 +42,14 @@ export class Bet {
   /**
    * @throws {Error} If amount is outside the allowed min/max range.
    */
-  static create(roundId: string, playerId: string, amount: Money): Bet {
+  static create(roundId: string, playerId: string, username: string, amount: Money): Bet {
     if (amount.amount < MIN_BET.amount) {
       throw new Error(`Minimum bet is ${MIN_BET.amount} cents`);
     }
     if (amount.amount > MAX_BET.amount) {
       throw new Error(`Maximum bet is ${MAX_BET.amount} cents`);
     }
-    return new Bet(randomUUID(), roundId, playerId, amount, BetStatus.PENDING, null, null, new Date());
+    return new Bet(randomUUID(), roundId, playerId, username, amount, BetStatus.PENDING, null, null, new Date());
   }
 
   /** Rebuilds a Bet from a persisted record without side effects. */
@@ -56,6 +57,7 @@ export class Bet {
     id: string,
     roundId: string,
     playerId: string,
+    username: string,
     amountCents: bigint,
     status: BetStatus,
     payoutCents: bigint | null,
@@ -66,6 +68,7 @@ export class Bet {
       id,
       roundId,
       playerId,
+      username,
       Money.of(amountCents),
       status,
       payoutCents !== null ? Money.of(payoutCents) : null,
