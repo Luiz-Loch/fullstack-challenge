@@ -18,6 +18,10 @@ services:
   - name: games-service
     url: http://games:4001
     routes:
+      - name: games-ws-route
+        paths:
+          - /games/socket.io
+        strip_path: false
       - name: games-routes
         paths:
           - /games
