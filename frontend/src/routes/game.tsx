@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { useAuthStore } from '../stores/auth'
 import { useGameSocket } from '../hooks/useGameSocket'
+import { useGameStore } from '../stores/game'
 import { PlayerInfo } from '../components/PlayerInfo'
 import { CrashGraph } from '../components/CrashGraph'
 import { BetControls } from '../components/BetControls'
@@ -15,6 +16,7 @@ export const Route = createFileRoute('/game')({
 function GamePage() {
   const { token } = useAuthStore()
   const navigate = useNavigate()
+  const { phase, multiplier, crashPoint, serverSeedHash } = useGameStore()
 
   useGameSocket()
 
@@ -34,7 +36,12 @@ function GamePage() {
       <main className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-3 p-3">
         {/* Left: graph + history */}
         <div className="md:col-span-2 flex flex-col gap-3 min-h-0">
-          <CrashGraph phase="betting" multiplier={1} />
+          <CrashGraph
+            phase={phase}
+            multiplier={multiplier}
+            crashPoint={crashPoint ?? undefined}
+            seedHash={serverSeedHash ?? undefined}
+          />
           <RoundHistory />
         </div>
 

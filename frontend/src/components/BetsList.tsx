@@ -1,11 +1,18 @@
-import { useGameState } from '../hooks/useGameState'
+import { useQuery } from '@tanstack/react-query'
+import { gameService } from '../services/game.service'
 
 function formatCents(cents: string) {
   return (Number(cents) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 export function BetsList() {
-  const { bets } = useGameState()
+  const { data: round } = useQuery({
+    queryKey: ['bets', 'current'],
+    queryFn: () => gameService.getCurrentRound(),
+    retry: false,
+    throwOnError: false,
+  })
+  const bets = round?.bets ?? []
 
   return (
     <div className="flex-1 min-h-0 bg-gray-900 rounded-xl border border-gray-800 flex flex-col">

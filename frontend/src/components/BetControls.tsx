@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Timer } from 'lucide-react'
 import { gameService } from '../services/game.service'
@@ -8,12 +8,15 @@ import { useGameState } from '../hooks/useGameState'
 export function BetControls() {
   const queryClient = useQueryClient()
   const [amount, setAmount] = useState('')
+  const [placedAmountCents, setPlacedAmountCents] = useState<number | null>(null)
+  const [frozenPayout, setFrozenPayout] = useState<number | null>(null)
 
   const { phase, multiplier, hasBet } = useGameState()
 
   const betMutation = useMutation({
     mutationFn: (amountCents: number) => gameService.placeBet({ amountCents }),
-    onSuccess: () => {
+    onSuccess: (_, amountCents) => {
+      setPlacedAmountCents(amountCents)
       setAmount('')
       queryClient.invalidateQueries({ queryKey: ['wallet'] })
     },
@@ -21,18 +24,36 @@ export function BetControls() {
 
   const cashOutMutation = useMutation({
     mutationFn: gameService.cashOut,
+    onSuccess: (data) => {
+      setFrozenPayout(Number(data.payoutCents) / 100)
+      queryClient.invalidateQueries({ queryKey: ['wallet'] })
+    },
   })
+
+  useEffect(() => {
+    if (!hasBet) {
+      setPlacedAmountCents(null)
+      setFrozenPayout(null)
+    }
+  }, [hasBet])
 
   const isBettingOpen = phase === 'BETTING' && !hasBet
   const canCashOut = phase === 'RUNNING' && hasBet
   const amountValue = Number(amount)
   const amountError = amount ? validateBetAmount(amountValue) : null
-  const potentialPayout = hasBet ? amountValue * multiplier : null
+  const potentialPayout = hasBet && placedAmountCents !== null
+    ? (placedAmountCents / 100) * multiplier
+    : null
 
   function handleBet() {
     const cents = Math.round(amountValue * 100)
     if (!cents || amountError) return
     betMutation.mutate(cents)
+  }
+
+  function handleCashOut() {
+    setFrozenPayout(potentialPayout)
+    cashOutMutation.mutate()
   }
 
   return (
@@ -91,13 +112,15 @@ export function BetControls() {
       {canCashOut ? (
         <button
           type="button"
-          onClick={() => cashOutMutation.mutate()}
+          onClick={handleCashOut}
           disabled={cashOutMutation.isPending}
           className="w-full py-3 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm transition-colors shadow-[0_0_20px_rgba(234,179,8,0.3)] disabled:opacity-60"
         >
-          {potentialPayout !== null
-            ? `Cash Out · R$ ${potentialPayout.toFixed(2)}`
-            : 'Cash Out'}
+          {frozenPayout !== null
+            ? `Sacando · R$ ${frozenPayout.toFixed(2)}`
+            : potentialPayout !== null
+              ? `Cash Out · R$ ${potentialPayout.toFixed(2)}`
+              : 'Cash Out'}
         </button>
       ) : (
         <button

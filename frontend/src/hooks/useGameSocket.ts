@@ -6,7 +6,7 @@ import { gameService } from '../services/game.service'
 import { useGameStore } from '../stores/game'
 import { parseCentesimals } from '../types/game'
 
-const SOCKET_URL = import.meta.env.VITE_WS_URL ?? 'http://localhost:8000/games'
+const WS_BASE = import.meta.env.VITE_WS_URL ?? 'http://localhost:8000'
 
 interface RoundBettingPayload {
   roundId: string
@@ -44,7 +44,8 @@ export function useGameSocket() {
   const playerId = keycloak.tokenParsed?.sub as string | undefined
 
   useEffect(() => {
-    const socket = io(SOCKET_URL, {
+    const socket = io(`${WS_BASE}/games`, {
+      path: '/games/socket.io',
       auth: { token: keycloak.token },
       transports: ['websocket'],
     })
@@ -61,6 +62,7 @@ export function useGameSocket() {
       store.setRound(roundId, serverSeedHash)
       store.setPhase('BETTING')
       queryClient.invalidateQueries({ queryKey: ['rounds', 'history'] })
+      queryClient.invalidateQueries({ queryKey: ['bets', 'current'] })
     })
 
     socket.on('round:started', () => {
@@ -77,27 +79,15 @@ export function useGameSocket() {
     })
 
     socket.on('bet:placed', ({ betId, playerId: betPlayerId, username, amountCents }: BetPlacedPayload) => {
-      store.addBet({
-        id: betId,
-        username,
-        amountCents,
-        status: 'PENDING',
-        payoutCents: null,
-        cashedOutAt: null,
-      })
+      store.addBet({ id: betId, username, amountCents, status: 'PENDING', payoutCents: null, cashedOutAt: null })
       if (betPlayerId === playerId) store.setHasBet(true)
+      queryClient.invalidateQueries({ queryKey: ['bets', 'current'] })
     })
 
     socket.on('bet:cashout', ({ betId, playerId: betPlayerId, payoutCents }: BetCashoutPayload) => {
-      store.updateBet(betId, {
-        status: 'CASHED_OUT',
-        payoutCents,
-        cashedOutAt: new Date().toISOString(),
-      })
-      if (betPlayerId === playerId) {
-        store.setHasBet(false)
-        queryClient.invalidateQueries({ queryKey: ['wallet'] })
-      }
+      store.updateBet(betId, { status: 'CASHED_OUT', payoutCents })
+      if (betPlayerId === playerId) store.setHasBet(false)
+      queryClient.invalidateQueries({ queryKey: ['bets', 'current'] })
     })
 
     return () => { socket.disconnect() }
