@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { useAuthStore } from '../stores/auth'
+import { useGameSocket } from '../hooks/useGameSocket'
 import { PlayerInfo } from '../components/PlayerInfo'
 import { CrashGraph } from '../components/CrashGraph'
 import { BetControls } from '../components/BetControls'
@@ -14,6 +15,8 @@ export const Route = createFileRoute('/game')({
 function GamePage() {
   const { token } = useAuthStore()
   const navigate = useNavigate()
+
+  useGameSocket()
 
   useEffect(() => {
     if (!token) navigate({ to: '/login' })

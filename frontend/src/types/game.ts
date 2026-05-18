@@ -1,5 +1,7 @@
 export type { Paginated } from './paginated'
 
+export type GamePhase = 'BETTING' | 'RUNNING' | 'CRASHED'
+
 export interface RoundHistoryItem {
   id: string
   /** Crash point in centesimals (e.g. "150" = 1.50x) */
