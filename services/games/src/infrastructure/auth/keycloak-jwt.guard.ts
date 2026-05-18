@@ -4,10 +4,11 @@ import * as jwt from 'jsonwebtoken';
 import jwksRsa from 'jwks-rsa';
 import type { Request } from 'express';
 
-/** Express request enriched with the authenticated player's id after JWT validation. */
+/** Express request enriched with the authenticated player's id and username after JWT validation. */
 export interface AuthenticatedRequest
     extends Request {
   playerId: string;
+  username: string;
 }
 
 /**
@@ -51,6 +52,7 @@ export class KeycloakJwtGuard
     }
 
     request.playerId = payload.sub;
+    request.username = (payload['preferred_username'] as string | undefined) ?? payload.sub;
     return true;
   }
 

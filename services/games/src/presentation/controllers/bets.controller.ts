@@ -6,6 +6,7 @@ import { GetPlayerBetHistoryUseCase } from '@/application/use-cases/get-player-b
 import { PlaceBetUseCase } from '@/application/use-cases/place-bet.use-case';
 import { KeycloakJwtGuard } from '@/infrastructure/auth/keycloak-jwt.guard';
 import { PlayerId } from '@/infrastructure/auth/player-id.decorator';
+import { Username } from '@/infrastructure/auth/username.decorator';
 import { BetHistoryItemDto, toBetHistoryItemDto } from './dtos/bet-history-response.dto';
 import { CashOutResponseDto, toCashOutResponseDto } from './dtos/cashout-response.dto';
 import { PaginatedResponseDto } from './dtos/paginated-response.dto';
@@ -44,6 +45,7 @@ export class BetsController {
   @ApiConflictResponse({ description: 'Player already has a bet in this round' })
   async placeBetHandler(
     @PlayerId() playerId: string,
+    @Username() username: string,
     @Body() body: PlaceBetRequestDto,
   ): Promise<PlaceBetResponseDto> {
     this.logger.log(`POST /bet — playerId=${playerId} amountCents=${body.amountCents}`);
@@ -56,6 +58,7 @@ export class BetsController {
     const result = await this.placeBet.execute({
       roundId,
       playerId,
+      username,
       amountCents: BigInt(body.amountCents),
     });
 

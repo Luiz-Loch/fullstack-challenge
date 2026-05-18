@@ -9,16 +9,12 @@ function Home() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!token) {
+    if (token) {
+      navigate({ to: '/game' })
+    } else {
       navigate({ to: '/login' })
     }
   }, [token, navigate])
 
-  if (!token) return null
-
-  return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-      <p className="text-white text-xl">Game — PR7</p>
-    </div>
-  )
+  return null
 }
